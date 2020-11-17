@@ -1,6 +1,6 @@
 Commands to execute the program:
 
-iverilog -o smou sequential_multiplier.v tb_seq_mult.v
+iverilog -o smou sequential_multiplier.v tb_seq_mult.v lib.v
 
 vvp smou
 
