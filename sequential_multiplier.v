@@ -1,83 +1,92 @@
-module and2 (input wire i0, i1, output wire o);
-  assign o = i0 & i1;
+module seq_mul (input wire clk,reset,test, input wire [7:0] mul,b,output wire [15:0] prod);
+    wire [15:0]sum;
+    wire carry,cout;
+    alu_slice a1(test,prod,mul,sum,cout);
+    reg_file rf1(clk,reset,test,cout,sum,prod);
 endmodule
 
-module or2 (input wire i0, i1, output wire o);
-  assign o = i0 | i1;
+module alu_slice(input wire test,input wire[15:0] a,input wire[7:0] b1,output wire [15:0] out,output wire carry);
+    assign out[0] = a[0];
+    assign out[1] = a[1];
+    assign out[2] = a[2];
+    assign out[3] = a[3];
+    assign out[4] = a[4];
+    assign out[5] = a[5];
+    assign out[6] = a[6];
+    assign out[7] = a[7];
+
+    wire [7:0]b;
+    and2 s1(test,b1[0],b[0]);
+    and2 s2(test,b1[1],b[1]);
+    and2 s3(test,b1[2],b[2]);
+    and2 s4(test,b1[3],b[3]);
+    and2 s5(test,b1[4],b[4]);
+    and2 s6(test,b1[5],b[5]);
+    and2 s7(test,b1[6],b[6]);
+    and2 s8(test,b1[7],b[7]);
+
+    wire [6:0] c; 
+    fa f1(a[8],b[0],1'b0,out[8],c[0]);
+    fa f2(a[9],b[1],c[0],out[9],c[1]);
+    fa f3(a[10],b[2],c[1],out[10],c[2]);
+    fa f4(a[11],b[3],c[2],out[11],c[3]);
+    fa f5(a[12],b[4],c[3],out[12],c[4]);
+    fa f6(a[13],b[5],c[4],out[13],c[5]);
+    fa f7(a[14],b[6],c[5],out[14],c[6]);
+    fa f8(a[15],b[7],c[6],out[15],carry);
 endmodule
 
-module xor2 (input wire i0, i1, output wire o);
-  assign o = i0 ^ i1;
+module reg_file(input wire clk,reset,test,cout,input wire [15:0]sum,output wire [15:0] prod);
+    wire [15:0] r0;
+    read re1(clk,r0,prod);
+    shift s1(clk,reset,cout,sum,r0);
 endmodule
 
-module full_adder(input wire a, b, cin, output wire sum, cout);
-	wire [4:0] t;
-    xor2 x0(a, b, t[0]);
-    xor2 x1(t[0], cin, sum);
-
-    and2 a0(a, b, t[1]);
-    and2 a1(a, cin, t[2]);
-    and2 a2(b, cin, t[3]);
-
-    or2 o0(t[1], t[2], t[4]);
-    or2 o1(t[3], t[4], cout);
-
+module read (input wire clk, input wire [15:0] x, output wire [15:0] y);
+    assign y[0] = x[0];
+    assign y[1] = x[1];
+    assign y[2] = x[2];
+    assign y[3] = x[3];
+    assign y[4] = x[4];
+    assign y[5] = x[5];
+    assign y[6] = x[6];
+    assign y[7] = x[7];
+    assign y[8] = x[8];
+    assign y[9] = x[9];
+    assign y[10] = x[10];
+    assign y[11] = x[11];
+    assign y[12] = x[12];
+    assign y[13] = x[13];
+    assign y[14] = x[14];
+    assign y[15] = x[15];
 endmodule
 
-module partial_product_0(input wire[3:0] m, input wire q, output wire[3:0] out);
-    and2 a0(m[0],q,out[0]);
-    and2 a1(m[1],q,out[1]);
-    and2 a2(m[2],q,out[2]);
-    and2 a3(m[3],q,out[3]);
+module shift(input wire clk,reset,cout, input wire [15:0] sum,output [15:0] out);
+    wire test = 1'b1;
+    dfrl p0(clk,reset,test,sum[1],out[0]);
+    dfrl p1(clk,reset,test,sum[2],out[1]);
+    dfrl p2(clk,reset,test,sum[3],out[2]);
+    dfrl p3(clk,reset,test,sum[4],out[3]);
+    dfrl p4(clk,reset,test,sum[5],out[4]);
+    dfrl p5(clk,reset,test,sum[6],out[5]);
+    dfrl p6(clk,reset,test,sum[7],out[6]);
+    dfrl p7(clk,reset,test,sum[8],out[7]);
+    dfrl p8(clk,reset,test,sum[9],out[8]);
+    dfrl p9(clk,reset,test,sum[10],out[9]);
+    dfrl p10(clk,reset,test,sum[11],out[10]);
+    dfrl p11(clk,reset,test,sum[12],out[11]);
+    dfrl p12(clk,reset,test,sum[13],out[12]);
+    dfrl p13(clk,reset,test,sum[14],out[13]);
+    dfrl p14(clk,reset,test,sum[15],out[14]);
+    dfrl p15(clk,reset,test,cout,out[15]);
 endmodule
 
-module product_block(input wire m,q,pp,c_in,output wire c_out, out);
-    wire t;
-    and2 a0(m,q,t);
-    full_adder fa(t,pp,cin,out,cout);
+module fa (input wire i0, i1, cin, output wire sum, cout);
+   wire t0, t1, t2;
+   xor3 _i0 (i0, i1, cin, sum);
+   and2 _i1 (i0, i1, t0);
+   and2 _i2 (i1, cin, t1);
+   and2 _i3 (cin, i0, t2);
+   or3 _i4 (t0, t1, t2, cout);
 endmodule
-
-module partial_product(input wire[3:0] m,pp, input wire q,c_in, output wire[3:0] out, output wire c_out);
-    wire[2:0] c;
-    product_block pb_1(m[0],q,pp[0],c_in,c[0],out[0]);
-    product_block pb_2(m[1],q,pp[1],c[0],c[1],out[1]);
-    product_block pb_3(m[2],q,pp[2],c[1],c[2],out[2]);
-    product_block pb_4(m[3],q,pp[3],c[2],c_out,out[3]);
-endmodule
-
-module sequential_multiplier(input[3:0] m, q, output wire[7:0] out);
-    wire[3:0] p0,p1,p2,p3;
-    wire[3:0] pp0_res,pp1_res,pp2_res;
-    wire c1,c2,c3;
-
-    partial_product_0 pp0(m,q[0],p0);
-    assign out[0] = p0[0];
-
-    assign pp0_res[0] = p0[1];
-    assign pp0_res[1] = p0[2];
-    assign pp0_res[2] = p0[3];
-    assign pp0_res[3] = 0;
-
-    partial_product pp1(m,pp0_res,q[1],1'b0,p1,c1);
-    assign out[1] = p1[0];
-
-    assign pp1_res[0] = p1[1];
-    assign pp1_res[1] = p1[2];
-    assign pp1_res[2] = p1[3];
-    assign pp1_res[3] = c1;
-
-    partial_product pp2(m,pp1_res,q[2],c1,p2,c2);
-    assign out[2] = p2[0];
     
-    assign pp2_res[0] = p2[1];
-    assign pp2_res[1] = p2[2];
-    assign pp2_res[2] = p2[3];
-    assign pp2_res[3] = c2;
-
-    partial_product pp3(m,pp2_res,q[3],c2,p3,c3);
-    assign out[3]= p3[0];
-    assign out[4]= p3[1];
-    assign out[5]= p3[2];
-    assign out[6]= p3[3];
-    assign out[7]= c3;
-endmodule
