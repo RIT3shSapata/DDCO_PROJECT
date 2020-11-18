@@ -11,8 +11,8 @@ module tb;
   initial begin reset = 1'b1; #20 reset = 1'b0; end
   initial clk = 1'b0; always #5 clk =~ clk;
   initial begin
-    mul = 37;
-    b = 16;
+    mul = 20;
+    b = 18;
   end
   seq_mul seq_mul0 (clk, reset, test, mul, b, prod);
   initial begin
